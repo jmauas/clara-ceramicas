@@ -1,0 +1,22 @@
+.tachado {
+    position: relative;
+    display: inline-block;
+    text-decoration: none;
+    color: black;
+}
+.tachado::before,
+.tachado::after {
+    content: '';
+    position: absolute;
+    width: 141.42%; /* sqrt(2) * 100% to cover the diagonal */
+    height: 1px;
+    background-color: black;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(45deg);
+    transform-origin: center;
+}
+
+.tachado::after {
+    transform: translate(-50%, -50%) rotate(-45deg);
+}

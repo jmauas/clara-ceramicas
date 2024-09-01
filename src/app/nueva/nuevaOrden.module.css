@@ -1,0 +1,10 @@
+@keyframes colorChange {
+    0% { background-color: #f0f0f0; }
+    50% { background-color: #b2b0b0; }
+    100% { background-color: #f0f0f0; }
+}
+
+.dragging {
+    animation: colorChange 1s infinite;
+    border: 2px dashed #000;
+}
