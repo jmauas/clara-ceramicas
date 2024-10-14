@@ -53,9 +53,12 @@ export default function DisenadorSelect({ setFiltros }) {
         fetch(`/api/usuarios?nombre=&perfiles=2`)
             .then((res) => res.json())
             .then((data) => {
-            const users = data.users.map(user => ({label: user.nombre+' '+user.apellido, value: user._id, emoji: user.picture ? <img src={user.picture} alt={user.nombre} className="w-8 h-8 rounded-full"/> : '👤'}));
-            setOptions([{value: 1000, label: `Todos`, bg: '', emoji: '💯'}, ...users])        
-        });
+                const users = data.users.map(user => ({label: user.nombre+' '+user.apellido, value: user._id, emoji: user.picture ? <img src={user.picture} alt={user.nombre} className="w-8 h-8 rounded-full"/> : '👤'}));
+                setOptions([{value: 1000, label: `Todos`, bg: '', emoji: '💯'}, ...users])        
+                }
+            )
+            .catch((error) => console.log(error))
+        ;
     }
     
     useEffect(() => {

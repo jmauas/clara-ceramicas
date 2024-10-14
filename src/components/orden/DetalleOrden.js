@@ -4,113 +4,65 @@ import Toast from '@/src/components/Toast.js';
 import { useSession } from "next-auth/react";
 import { formatoFecha } from "@/src/services/utils/auxiliaresCliente.js";
 import Slide from "@/src/components/orden/Slide";
-import { FaCloudDownloadAlt, FaRegEdit, FaTimesCircle, FaCalendarAlt, FaCheckCircle, FaWindowClose } from "react-icons/fa";
+import { FaCloudDownloadAlt, FaCalendarAlt, FaCheckCircle, FaWindowClose } from "react-icons/fa";
 import { GrUpdate } from "react-icons/gr";
 import { nuevaOrden } from "@/src/services/utils/utils.ordenes.js";
 import { colorEstado, estadosOrden } from "@/src/services/utils/utils.ordenes.js";
-import Link from 'next/link';
-import { FaFileUpload } from "react-icons/fa";
-import axios from 'axios';
 import Loader from '@/src/app/loading.js';
 import UltimosMsg from '@/src/components/orden/UltimosMsg.js';
 import generarPdf from "@/src/services/utils/generarPDF.js";
+import NuevoMensaje from '@/src/components/orden/NuevoMensaje.js';
+import { FaRegEdit, FaTimesCircle } from "react-icons/fa";
+import Link from 'next/link';
 
 const materiales = nuevaOrden.material;
 const impresiones = nuevaOrden.impresion;
 
-export default function ModalUsuario({orden, updateOrder, handleClose, enDetalle, actualizarDetalle}) {
+export default function ModalOrden({orden, updateOrder, handleClose, enDetalle, actualizarDetalle}) {
     const [ toast, setToast ] = useState(false);
     const [ propsToast, setPropsToast ] = useState({});
     const { data } = useSession();
     const [ width, setWidth ] = useState(0);
     const [ load, setLoad ] = useState(false);
     
-   
     const handleResize = () => {
         setWidth(window ? window.innerWidth : 0);
     };
-
-    const handleUploadChange = async (e) => {
-        e.preventDefault();
-        if (e && e.target && e.target.files && e.target.files.length > 0) {            
-           await subirFiles(e.target.files);
-        }
-        e.target.files = null;
-    };
-
+   
     const actualizarVista = async (id) => {
         actualizarDetalle(id);
     }
 
-    const subirFiles = async (files) => {
-        setLoad(true)    
-        for await (let file of files) {
-            if (!file) continue
-            try {
-                let ext = file.name.substring(file.name.lastIndexOf('.')+1).toLowerCase();
-                let ruta = '';
-                switch (ext) {
-                    case 'zip':
-                        ruta = 'adjuntos/zip';
-                        break;
-                    case 'png':
-                    case 'jpg':
-                    case 'jpeg':
-                    case 'gif':
-                    case 'svg':
-                    case 'webp':
-                        ruta = 'adjuntos/img';
-                        break;
-                    default:
-                        ruta = 'adjuntos/scans';
-                        break;
-                }
-                const res = await subirFile(file, ruta);
-            } catch (error) {
-                console.error('Error subiendo archivo:', error);
-            }          
-        }       
-        setPropsToast({
-            mensaje: `Archivos Enviados.`,
-            tema: 'ok',
-            titulo: 'Archivos Enviados con Éxito'
-        });
-        setToast(true);        
-        setLoad(false)
-    }
-
-    const subirFile = async (file, ruta) => {
-        try {
-            const formData = new FormData()
-            formData.set('file', file)            
-            let rsdo = await axios.post(`/api/wn/${ruta}`, formData);
-            
-            const adjuntos = rsdo.data.nombres;
-            if (adjuntos && adjuntos.length > 0) {
-                for await (let adjunto of adjuntos) {
-                    const url = adjunto.tipo === 'img' ? `/api/wn/adjuntos/img` : `/api/wn/adjuntos/scans`;
-                    rsdo = await axios.put(url, {orden: orden, adjunto: adjunto.nombre, userEnvia: data.user});
-                }
-            }
-            return rsdo.data
-        } catch (error) {
-            console.error('Error subiendo archivo:', error);
-            return {ok: false, nombre: ''}
-        }
-    } 
-
     const descargarScan = (scan) => {
-        crearLink(`/api/files/scans/`, scan);
+        if (scan.externa) {
+            crearLink(scan.url, scan.nombre, true);
+        } else {
+            crearLink(`/api/files/scans/`, scan);
+        }
     }
     
-    const crearLink = async (url, id) => {
-        const link = document.createElement('a');
-        link.href = url+id;
-        link.download = id;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        return;
+    const crearLink = async (url, id, externa) => {
+        try {
+            const link = document.createElement('a');
+            if (!externa) {
+                link.href = url+id;
+                link.download = id;
+                link.style.display = 'none';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } else {
+                const res = await fetch(url);
+                const blob = await res.blob();
+                url = URL.createObjectURL(blob);
+                link.href = url;
+                link.download = id
+                link.click();
+                URL.revokeObjectURL(url);
+            }
+        } catch (error) {
+            console.log(error);
+        }
     }
 
     const cancelarOrden = async (orden) => {
@@ -170,12 +122,20 @@ Para el *${formatoFecha(orden.fechaEstimada, false, false, false, true)}*.`,
             const imgs = orden.imgs;     
             if (scans && scans.length > 0) {
                 scans.forEach(async scan => {
-                    await crearLink(`/api/files/scans/`, scan);
+                    if (scan.externa) {
+                        await crearLink(scan.url, scan.nombre, true);
+                    } else {
+                        await crearLink(`/api/files/scans/`, scan);
+                    }
                 })
             }
             if (imgs && imgs.length > 0) {
-                imgs.forEach(async img => {                
-                   await crearLink(`/api/files/imgs/`, img);
+                imgs.forEach(async img => { 
+                    if (img.externa) {
+                        await crearLink(img.url, img.nombre, true);
+                    } else {               
+                        await crearLink(`/api/files/imgs/`, img);
+                    }
                 }
             )}
             await generarPdf(orden, data.user);
@@ -185,64 +145,18 @@ Para el *${formatoFecha(orden.fechaEstimada, false, false, false, true)}*.`,
         } catch (error) {
             console.log(error);
         }
-    }
-
-    const onMsgSend = async (orden, perfil) => {
-        setLoad(true);
-        const nuevoMsg = document.getElementById(`textoMsg${orden._id}`).value;
-        if (nuevoMsg && nuevoMsg !== '') {
-            if (perfil>1) {
-                orden.estado = 10;
-                orden.historia.push({fecha: new Date().toISOString(), estado: orden.estado, mensaje: `Estado Modificado a Observada por Envio Mensaje.`, usuario: data.user.nombre+' '+data.user.apellido});
-            } else {
-                orden.nuevoMsgOdontologo = true;
-            }
-            orden.mensajes.push({fecha: new Date().toISOString(), mensaje: nuevoMsg, usuario: data.user.nombre+' '+data.user.apellido, perfil: perfil});
-            await updateOrder(orden);
-            
-            const msg = {
-                texto: `${nuevoMsg}.
-                En Orden Nro. ${orden.orderNumber} del Paciente ${orden.paciente}.
-                Dr. ${orden.odontologo.nombre} ${orden.odontologo.apellido}.`
-            }
-
-            if (perfil>1) {
-                msg.titulo = 'Mensaje del Laboratorio en Orden de Trabajo';
-            } else {
-                msg.titulo = 'Mensaje del Odontologo en Orden de Trabajo';
-            }
-            
-            const res = await fetch('/api/wn/send', {
-                body: JSON.stringify({msg: msg, userEnvia: data.user, orden: orden}),
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                method: 'POST'
-            })
-            let rsdo = await res.json();
-            if (rsdo.ok) {
-                setPropsToast({
-                    mensaje: `Mensaje Enviado con Éxito.`,
-                    tema: 'ok',
-                    titulo: 'Mensaje Enviado'
-                });
-                setToast(true);
-            } else {
-                setPropsToast({
-                    mensaje: rsdo.message,
-                    tema: 'error',
-                    titulo: 'Error'
-                });
-                setToast(true);
-            }
-        }
-        setLoad(false);
-    }
+    }    
 
     useEffect(() => {
         setWidth(window ? window.innerWidth : 0);
         handleResize();
         window.addEventListener('resize', handleResize);
+        const idTextArea = `textoMsg${orden._id}`;
+        const textArea = document.getElementById(idTextArea);
+        if (textArea) {
+            textArea.focus();
+            textArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
         return () => {
             window.removeEventListener('resize', handleResize);
         }
@@ -294,14 +208,14 @@ Para el *${formatoFecha(orden.fechaEstimada, false, false, false, true)}*.`,
                         {data && data.user && 
                             Number(data.user.perfil) === 1
                             ?    <div className={`col-span-12 sm:col-span-6 flex flex-col gap-5`}>
-                                    <span className={`flex items-center gap-4 float-right p-2 rounded-xl font-bold `} style={{backgroundColor: colorEstado(orden.estado)}}>
+                                    <span className={`flex items-center gap-4 float-right p-2 rounded-xl font-bold `} style={{backgroundColor: colorEstado(orden.estado, data.user.perfil)}}>
                                         {estadosOrden.find(es => es.value === orden.estado) && 
-                                            <><div className="text-2xl">{estadosOrden.find(es => es.value === orden.estado).emoji}</div>
+                                            <><div className="text-2xl">{estadosOrden.find(es => es.value === orden.estado).emojiCliente}</div>
                                             <div className="col-span-9">{estadosOrden.find(es => es.value === orden.estado).cliente || 'Indeterminado'}</div></>}
                                     </span>                                       
                                 </div>
                             :   <div className={`col-span-12 sm:col-span-6 flex flex-col gap-5`}>
-                                    <span className={`flex items-center gap-4 float-right p-2 rounded-xl font-bold `} style={{backgroundColor: colorEstado(orden.estado)}}>
+                                    <span className={`flex items-center gap-4 float-right p-2 rounded-xl font-bold `} style={{backgroundColor: colorEstado(orden.estado, data.user.perfil)}}>
                                         {estadosOrden.find(es => es.value === orden.estado) && 
                                             <><div className="text-2xl">{estadosOrden.find(es => es.value === orden.estado).emoji}</div>
                                             <div className="col-span-9">{estadosOrden.find(es => es.value === orden.estado).label}</div></>}
@@ -315,11 +229,11 @@ Para el *${formatoFecha(orden.fechaEstimada, false, false, false, true)}*.`,
                                 <h1 className="text-sm">Asignada A:</h1>
                                 {orden.asignada.picture && orden.asignada.picture != '' && 
                                     <Image 
-                                    src={orden.asignada.picture}  
-                                    width={30} 
-                                    height={30} 
-                                    alt="avatar" 
-                                    className="rounded-full"
+                                        src={orden.asignada.picture}  
+                                        width={30} 
+                                        height={30} 
+                                        alt="avatar" 
+                                        className="rounded-full"
                                     />
                                 }
                                 <h1 className="text-sm font-bold">{orden.asignada.nombre} {orden.asignada.apellido}</h1>
@@ -533,11 +447,11 @@ Para el *${formatoFecha(orden.fechaEstimada, false, false, false, true)}*.`,
                 <h2 className="md:text">Escaneos: </h2>
                 <h2 className="md:text font-bold flex flex-wrap gap-2">
                     {orden.scans.map((scan, i) => (
-                        <div key={scan} className="p-4 my-2 border-2 border-white rounded-xl flex items-center gap-2 cursor-pointer hover:bg-slate-300 hover:text-white text-sm"
+                        <div key={scan.externa ? scan.url : scan} className="p-4 my-2 border-2 border-white rounded-xl flex items-center gap-2 cursor-pointer hover:bg-slate-300 hover:text-white text-sm"
                             onClick={() => descargarScan(scan)}
                         >
                             <FaCloudDownloadAlt size="2rem"/>
-                            <span key={i}>{scan} </span>                                            
+                            <span key={i}>{scan.externa ? scan.nombre : scan} </span>                                            
                         </div>
                     )
                 )}
@@ -548,61 +462,30 @@ Para el *${formatoFecha(orden.fechaEstimada, false, false, false, true)}*.`,
                     enDetalle.find(o => o._id === orden._id).enDetalle && orden.slices && orden.slices.length > 0 &&
                     <Slide slides={orden.slices} width={width}/>
                 }
-                <div className="flex flex-col items-start place-content-around bg-slate-100 rounded-xl p-4 shadow-xl gap-8">
-                    <div className="flex items-center justify-content-center flex-wrap gap-4">            
-                        <div className="flex flex-col gap-2">
-                            <span>Nuevo Mensaje: </span>
-                            <textarea className="border-2 border-black p-2 rounded-xl" id={`textoMsg${orden._id}`}>
-                            </textarea>
-                        </div>
-                        <button className="p-2 border-2 border-black rounded-xl bg-green-300 hover:bg-green-500 hover:text-white"
-                            onClick={() => onMsgSend(orden, Number(data.user.perfil))}
-                            disabled={load}
-                            >Enviar Mensaje
-                        </button>
+                <div>
+                {
+                     ((orden.estado === 0 || orden.estado === 10 || orden.estado === 99) && Number(data.user.perfil)>=2) && 
+                     <div className="my-5 flex items-center flex-wrap gap-5">
+                        <button 
+                            className={`ml-2 p-2 rounded-xl text-black hover:text-white font-bold flex items-center gap-2 ${orden.estado === 99 ? 'bg-green-300 hover:bg-green-500' : 'bg-red-200 hover:bg-red-500'}`}
+                            onClick={() => cancelarOrden(orden)}
+                            >
+                            <FaTimesCircle size="2rem"/>
+                            {orden.estado === 99 ? 'Re Activar Órden' : 'Cancelar Órden'}
+                        </button>         
                     </div>
-                    {Number(data.user.perfil)>1 &&
-                        <div className="flex flex-col gap-2">
-                            <span>Nuevo Adjunto: </span>
-                            <form 
-                                className="grid grid-cols-12 items-center"
-                                encType="multipart/form-data"
-                            >
-                                <label id="labelUpload" htmlFor="fileUpload"
-                                    className="p-3 bg-green-300 border-2 rounded-xl col-span-12 flex items-center gap-5 hover:bg-green-600 hover:text-white">
-                                    <FaFileUpload size="4em" />
-                                    <div className="grid gap-4">
-                                        <span>☑️ Arrastrá los Archivos a Subir.</span>
-                                        <span>☑️ Tambien podes hacer Clic para Seleccionarlos.</span>
-                                    </div>
-                                    <input type="file" accept=".*" id="fileUpload" onChange={handleUploadChange} multiple className="hidden" disabled={load}/>
-                                </label>                
-                            </form>
-                        </div>
-                    }
-                    {
-                        ((orden.estado === 0 || orden.estado === 10 || orden.estado === 99) && Number(data.user.perfil)>=2) && 
-                        <div className="my-5 flex items-center flex-wrap gap-5">
-                            <button 
-                                className={`ml-2 p-2 rounded-xl text-black hover:text-white font-bold flex items-center gap-2 ${orden.estado === 99 ? 'bg-green-300 hover:bg-green-500' : 'bg-red-200 hover:bg-red-500'}`}
-                                onClick={() => cancelarOrden(orden)}
-                            >
-                                <FaTimesCircle size="2rem"/>
-                                {orden.estado === 99 ? 'Re Activar Órden' : 'Cancelar Órden'}
-                            </button>         
-                        </div>
-                    }
-                    {
-                        ((orden.estado === 0 || orden.estado === 10 || orden.estado === 99) || Number(data.user.perfil)>=3) && 
-                        <Link 
-                            href={`/nueva?orden=${orden._id}`} 
-                            target="_blank"
-                            className="ml-2 p-2 rounded-xl bg-yellow-200 hover:bg-yellow-100 text-black hover:text-black font-bold flex items-center gap-2"
-                        >
-                            <FaRegEdit size="2rem"/>
-                            Modificar Orden
-                        </Link>
-                    }
+                }
+                {
+                    ((orden.estado === 0 || orden.estado === 10 || orden.estado === 99) || Number(data.user.perfil)>=3) && 
+                    <Link 
+                        href={`/nueva?orden=${orden._id}`} 
+                        target="_blank"
+                        className="ml-2 p-2 rounded-xl bg-yellow-200 hover:bg-yellow-100 text-black hover:text-black font-bold flex items-center gap-2"
+                    >
+                        <FaRegEdit size="2rem"/>
+                        Modificar Orden
+                    </Link>
+                }
                 </div>
             </div>
             <div>
@@ -645,15 +528,28 @@ Para el *${formatoFecha(orden.fechaEstimada, false, false, false, true)}*.`,
                     </div>          
                 }
             </div>
-            <div className="font-bold flex flex-col flex-wrap gap-2">
+            <div className="font-bold flex flex-col flex-wrap gap-2 mx-0 p-2 md:mx-5 md:p-5 border border-black rounded-xl shadow">
                 <h2 className="md:text">Mensajes del Trabajo: </h2>
                 {orden.mensajes.map((hist, i) => (
-                    <div key={i} className="p-2 border-2 border-white rounded-xl grid grid-cols-12 gap-5 text-sm">
+                    <div key={i} className={`p-2 mx-1 md:mx-4 rounded-md grid grid-cols-12 gap-5 text-xs 
+                     ${hist.perfil === 1 ? 'bg-green-200' : 'bg-sky-200'}`}
+                    >
+                        <span className="">{hist.perfil == 1 ? '👩‍⚕️' : '⚠️'}</span>
                         <span className="col-span-6 md:col-span-2">{formatoFecha(hist.fecha, true, false, false, true)}</span>
                         <span className="col-span-6 md:col-span-1">{hist.usuario}</span>
                         <span className="col-span-12 md:col-span-8">{hist.mensaje}</span>
                     </div>
                 ))}
+                <NuevoMensaje 
+                    orden={orden} 
+                    data={data}
+                    load={load}
+                    setLoad={setLoad}
+                    cancelarOrden={cancelarOrden}
+                    updateOrder={updateOrder} 
+                    setPropsToast={setPropsToast} 
+                    setToast={setToast} 
+                />
             </div>
             {handleClose &&
                 <button 

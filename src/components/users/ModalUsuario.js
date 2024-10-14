@@ -47,7 +47,7 @@ export default function ModalUsuario({open, setOpen, usuario, setUsuario, actual
         setError('')
         setOk('')
         try {
-            if (!validarUser(usuario, setError, true)) return
+            if (!validarUser(usuario, setError, true, false)) return
             setLoad(true)
             const result = usuario.new ? await enviarFetch('POST') : await enviarFetch('PUT');            
             if (result.error){

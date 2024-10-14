@@ -1,4 +1,4 @@
-import { createServer } from 'https';
+import { createServer } from 'http';
 import next from 'next';
 import express from 'express';
 import { readFileSync } from 'fs';
@@ -26,7 +26,11 @@ app.prepare().then(() => {
     return handle(req, res);
   });
 
-  createServer(httpsOptions, server).listen(port, (err) => {
+  //createServer(httpsOptions, server).listen(port, (err) => {
+  //  if (err) throw err;
+  //  console.log(` Ready on ${hostname}:${port}`);
+  //});
+  createServer(server).listen(port, (err) => {
     if (err) throw err;
     console.log(` Ready on ${hostname}:${port}`);
   });

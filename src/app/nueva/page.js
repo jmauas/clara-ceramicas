@@ -13,7 +13,8 @@ import Toast from '@/src/components/Toast.js';
 import { useRouter } from 'next/navigation';
 import SelectOdontologos from '@/src/components/users/OdontologosSelect';
 import Modalusuario from '@/src/components/users/ModalUsuario';
-
+import UploadClouddinary from '@/src/components/orden/UploadClouddinary';
+ 
 const NuevaOrdenDeTrabajo = () => {
     const [ orden, setOrden] = useState(nuevaOrden);
     const [ scans, setScans] = useState([]);
@@ -29,7 +30,7 @@ const NuevaOrdenDeTrabajo = () => {
     const listenerAdded = useRef(false);
     const [ open, setOpen] = useState(false);
     const [ usuario, setUsuario] = useState({});
-    const [ fechaMinima, setFechaMinima ] = useState(new Date().setDate(new Date().getDate() + 7));
+    const [ fechaEntregaMinima, setFechaEntregaMinima ] = useState(new Date().setDate(new Date().getDate() + 7));
   
 
     const handleInputChange = (e) => {
@@ -260,6 +261,8 @@ const NuevaOrdenDeTrabajo = () => {
                 setOrden(prev => ({...prev, odontologo: data.user}));
             }
         }
+        const dias = admin === true ? 0 : 7;
+        setFechaEntregaMinima(new Date().setDate(new Date().getDate() + dias));
         const params = new URLSearchParams(window.location.search);
         const orden = params.get('orden');
         if (orden && orden !== '') {
@@ -308,6 +311,9 @@ const NuevaOrdenDeTrabajo = () => {
                         <input type="file" accept=".*" id="fileUpload" onChange={handleUploadChange} multiple className="hidden" disabled={load}/>
                     </label>                
                 </form>
+
+                <UploadClouddinary setScans={setScans} setImgs={setImgs} texto={'Click para Subir Archivos de Diseño'} tipo={1}/>
+                
                 <label htmlFor={`sinAdjunto`} className="m-2 font-bold text-xl flex items-center">
                     <Switch 
                         id={`sinAdjunto`}
@@ -317,8 +323,8 @@ const NuevaOrdenDeTrabajo = () => {
                         height={20}
                         width={40}
                         className="react-switch m-5 text-xl"
-                        />
-                    Sin Adjuntos
+                    />
+                    Sin Archivos de Diseño
                 </label>
             </div>
             {uploadName && uploadName != '' &&
@@ -327,10 +333,10 @@ const NuevaOrdenDeTrabajo = () => {
             {scans.length>0 && <h1 className="font-bold my-5">Escaneos:</h1>}
             <div className="flex flex-wrap gap-2">
                 {scans.map(s => (
-                    <div key={s} className="m-2 p-2 border-2 border-black rounded-xl flex items-center justify-center gap-4">
+                    <div key={s.externa ? s.url : s} className="m-2 p-2 border-2 border-black rounded-xl flex items-center justify-center gap-4">
                         <FaFileUpload size="2em" />
                         <h4 className="col-span-12 md:col-span-6 lg:col-span-3">
-                            {s}
+                            {s.externa ? s.nombre : s}
                         </h4>                        
                         <button
                             onClick={() => setScans(prev => prev.filter(i => i !== s))}
@@ -342,21 +348,35 @@ const NuevaOrdenDeTrabajo = () => {
                 ))}
             </div>
             
-            {scans.length>0 && <h1 className="font-bold my-5">Imagenes:</h1>}
+            {imgs.length>0 && <h1 className="font-bold my-5">Imagenes:</h1>}
             <div className="flex flex-wrap gap-2">
                 {imgs.map(img => (
-                    <div key={img} className="m-2 p-2 border-2 border-black rounded-xl flex items-center justify-center gap-4">
+                    <div key={img.externa ? img.url : img} className="m-2 p-2 border-2 border-black rounded-xl flex items-center justify-center gap-4">
                         <FaImage size="2em" />
-                        <h4 className="col-span-12 md:col-span-6 lg:col-span-3">
-                            {img}
-                        </h4>
-                        <Image
-                            src={`/api/files/imgs/${img}`}
-                            width={100}
-                            height={100}
-                            alt={img}
-                            className="col-span-12 md:col-span-6 lg:col-span-3 rounded-lg"
-                        />
+                        {
+                            img.externa
+                            ?   <>
+                                <h4 className="col-span-12 md:col-span-6 lg:col-span-3">{img.nombre}</h4>
+                                <img
+                                    src={img.url}
+                                    alt={img.nombre}
+                                    className="col-span-12 md:col-span-6 lg:col-span-3 rounded-lg"                                   
+                                    width={100}
+                                    height={100}
+                                >
+                                </img>
+                                </>
+                            :   <>
+                                <h4 className="col-span-12 md:col-span-6 lg:col-span-3">{img}</h4>
+                                <Image
+                                    src={`/api/files/imgs/${img}`}
+                                    width={100}
+                                    height={100}
+                                    alt={img}
+                                    className="col-span-12 md:col-span-6 lg:col-span-3 rounded-lg"
+                                />
+                                </>
+                        }
                         <button
                             onClick={() => setImgs(prev => prev.filter(i => i !== img))}
                             className="p-2 bg-red-200 rounded-xl"
@@ -431,7 +451,7 @@ const NuevaOrdenDeTrabajo = () => {
                         name="fechaSolicitada"
                         onChange={handleInputChange}
                         className={`bg-gray-100 border-2 w-full p-4 rounded-lg my-2 col-span-6 md:col-span-4 `}
-                        min={fechaMinima && fechaMinima !== '' ? new Date(fechaMinima).toISOString().substring(0,10) : new Date().toISOString().substring(0,10)}
+                        min={fechaEntregaMinima && fechaEntregaMinima !== '' ? new Date(fechaEntregaMinima).toISOString().substring(0,10) : new Date().toISOString().substring(0,10)}
                     />                    
                 </div>
 

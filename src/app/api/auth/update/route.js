@@ -1,6 +1,7 @@
 import mongo from "@/src/services/mongoDb/config.mongoDb.mjs";
 import User from "@/src/models/auth.model.js";
 import { NextResponse } from "next/server";
+import bcryptjs from "bcryptjs"
 
 mongo();
 
@@ -28,6 +29,11 @@ export async function PUT(request) {
     saved.provincia = user.provincia;
     saved.cp = user.cp;
     saved.incompleto = false
+    if (user.password && user.password !== '') {
+      const salt = await bcryptjs.genSalt(10);
+      const hashedPassword = await bcryptjs.hash(user.password, salt);
+      saved.password = hashedPassword;
+    }
     
     await saved.save();
 

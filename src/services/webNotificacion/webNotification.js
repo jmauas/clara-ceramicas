@@ -6,6 +6,7 @@ import { ObjectId } from "mongodb";
 import { validarYEnviarWhatsapp } from '@/src/services/whatsapp/whatsappSender.js';
 
 const numeroLabo = process.env.NEXT_PUBLIC_NUMERO_WP;
+const url = process.env.URL_APP;
 
 mongo();
 
@@ -63,7 +64,7 @@ export const notificationPayload = (msg) =>   {
         body: msg.texto,
         icon: "/img/logo.png",
         data: {
-          url: "https://estudiomq.com.ar",
+          url: url,
         },
     };
 }

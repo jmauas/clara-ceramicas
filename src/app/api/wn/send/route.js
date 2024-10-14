@@ -27,6 +27,11 @@ ${msg.texto}`;
           msgWa += `
 
 ${msg.texto}`;
+        } else if (msg.conAdj) {
+          msgWa += `
+
+${msg.texto}
+*Para Responder, hace click en este Link:*`;
         } else {
           msgWa += `
 
@@ -35,14 +40,14 @@ Para ver el Mensaje y Responderlo, hace click en este Link:`;
     }
     await validarYEnviarWhatsapp(orden.odontologo.celular, msgWa)
     await validarYEnviarWhatsapp(orden.odontologo.celular, `${url}/ordenes/${orden.orderNumber}`)
-    const userIds = users.map(user => (new ObjectId(user._id).valueOf()));
-    const subscriptores = await Subscriptores.find({ 'user._id': { $in: userIds } });
-    const payload = notificationPayload(msg);
-    const res = await send(subscriptores, payload);
+    //const userIds = users.map(user => (new ObjectId(user._id).valueOf()));
+    //const subscriptores = await Subscriptores.find({ 'user._id': { $in: userIds } });
+    //const payload = notificationPayload(msg);
+    //const res = await send(subscriptores, payload);
     return NextResponse.json({
-        message: res.message,
-        ok: res.ok,
-        success: res.ok
+        message: true,
+        ok: true,
+        success: true
     }, { status: 200 });
   } catch (error) {
     console.log(error)

@@ -10,6 +10,7 @@ const agent = new https.Agent({
 });
 
 const url = process.env.URL_WHATSAPP;
+const urlApp = process.env.URL_APP;
 const token = process.env.TOKEN_WHATSAPP;
 const root = process.cwd();
 
@@ -45,7 +46,6 @@ export const postMessage = async (numero, mensaje, media, url, token) => {
             body: JSON.stringify(data)
         });
         const res = await data.json();
-        console.log(res);
         return res;
     } catch (error) {
         console.error('Error:', error);
@@ -54,23 +54,35 @@ export const postMessage = async (numero, mensaje, media, url, token) => {
 }
 
 
-export const postAdjunto = async (cel, adj, ruta) => {
+export const postAdjunto = async (cel, adj, ruta, externa, urlAdj) => {
     try {
-        let urlWa = url;
-        urlWa = urlWa.substring(0, urlWa.lastIndexOf('/'))+'/upload';
-        const formData = new FormData();
-        const filePath = path.join(root, 'locales', ruta, adj);
-        formData.append('myFile', fs.createReadStream(filePath));
-        const data = await fetch(urlWa, {
-            method: 'POST',
-            body: formData,
-            headers: {               
-                ...formData.getHeaders()
-            },
-        });
-        let res = await data.json();
-        const media = [res.file]
+        let media = '';
+        let res = '';
+        if (!externa === true) {
+            let urlWa = url;
+            urlWa = urlWa.substring(0, urlWa.lastIndexOf('/'))+'/upload';
+            const formData = new FormData();
+            const filePath = path.join(root, 'locales', ruta, adj);
+            formData.append('myFile', fs.createReadStream(filePath));
+            const data = await fetch(urlWa, {
+                method: 'POST',
+                body: formData,
+                headers: {               
+                    ...formData.getHeaders()
+                },
+            });
+            res = await data.json();
+            media = [res.file]
+        } else {
+            media = [urlAdj];
+        }        
         res = await validarYEnviarWhatsapp(cel, ``, media)
+        console.log(adj)
+        const ext = adj.substring(adj.lastIndexOf('.')+1);
+        if (ext === 'html') {
+           await validarYEnviarWhatsapp(cel, `Para ver el Diseño, hacé click en el siguiente Link: 
+            ${externa === true ? urlAdj : `${urlApp}/api/files/scans/${adj}`}`, '')
+        }
         return res;
     } catch (error) {
         console.error('Error:', error);

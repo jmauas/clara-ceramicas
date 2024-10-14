@@ -130,7 +130,6 @@ export const options = {
     async signOut({ token }) {   
       if (token) {
         const user = token.user;
-
         await mongo();
         const bdUser = await User.findOne({ _id: user._id });
         const log = new Log({

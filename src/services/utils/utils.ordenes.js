@@ -1,20 +1,24 @@
 export const estadosOrden = [
-    { value: 0, label: "Recibida", bg: '#fbf8cc', emoji: '📥', cliente: 'En Revisión'},
-    { value: 1, label: "Descargada", bg: '#fde4cf', emoji: '🖨️', cliente: 'En Revisión'},
-    { value: 10, label: "Observada", bg: '#ffcfd2', emoji: '⚠️', cliente: 'Observada'},
-    { value: 20, label: "A Diseñar", bg: '#b9fbc0', emoji: '✅', cliente: 'Confirmada'},
-    { value: 30, label: "En Diseño", bg: '#dedbd2', emoji: '🖥️', cliente: 'Confirmada'},
-    { value: 40, label: "En Aprobación", bg: '#cfbaf0', emoji: '🕒', cliente: 'Confirmada'},
-    { value: 50, label: "En Fresado", bg: '#a3c4f3', emoji: '🛠️', cliente: 'Confirmada'},
-    { value: 90, label: "En Terminación", bg: '#90dbf4', emoji: '📦', cliente: 'Confirmada'},
-    { value: 91, label: "Facturada", bg: '#98f5e1', emoji: '💸', cliente: 'Confirmada'},
-    { value: 95, label: "Entregada", bg: '#80ed99', emoji: '🚚', cliente: 'Confirmada'},
-    { value: 99, label: "Cancelada", bg: '#f4acb7', emoji: '❌', cliente: 'Cancelada'}
+    { value: 0, label: "Recibida", bg: '#fbf8cc', emoji: '📥', cliente: 'En Revisión', bgCliente: '#fbf8cc', emojiCliente: '📥'},
+    { value: 1, label: "Descargada", bg: '#fde4cf', emoji: '🖨️', cliente: 'En Revisión', bgCliente: '#fbf8cc', emojiCliente: '📥'},
+    { value: 10, label: "Observada", bg: '#ffcfd2', emoji: '⚠️', cliente: 'Observada', bgCliente: '#ffcfd2', emojiCliente: '⚠️'},
+    { value: 20, label: "A Diseñar", bg: '#b9fbc0', emoji: '✅', cliente: 'Confirmada', bgCliente: '#b9fbc0', emojiCliente: '✅'},
+    { value: 30, label: "En Diseño", bg: '#dedbd2', emoji: '🖥️', cliente: 'Confirmada', bgCliente: '#b9fbc0', emojiCliente: '✅'},
+    { value: 40, label: "En Aprobación", bg: '#cfbaf0', emoji: '🕒', cliente: 'Confirmada', bgCliente: '#b9fbc0', emojiCliente: '✅'},
+    { value: 50, label: "En Fresado", bg: '#a3c4f3', emoji: '🛠️', cliente: 'Confirmada', bgCliente: '#b9fbc0', emojiCliente: '✅'},
+    { value: 90, label: "En Terminación", bg: '#90dbf4', emoji: '📦', cliente: 'Confirmada', bgCliente: '#b9fbc0', emojiCliente: '✅'},
+    { value: 91, label: "Facturada", bg: '#98f5e1', emoji: '💸', cliente: 'Confirmada', bgCliente: '#b9fbc0', emojiCliente: '✅'},
+    { value: 95, label: "Entregada", bg: '#80ed99', emoji: '🚚', cliente: 'Entregada', bgCliente: '#80ed99', emojiCliente: '🚚'},
+    { value: 99, label: "Cancelada", bg: '#f4acb7', emoji: '❌', cliente: 'Cancelada', bgCliente: '#f4acb7', emojiCliente: '❌'}
 ];
 
-export const colorEstado = (estado) => {
+export const colorEstado = (estado, perfil) => {
     const color = estadosOrden.find(e => e.value === estado);
-    return color ? color.bg : '';   
+    if (perfil == 1) {
+        return color ? color.bgCliente : '';
+    } else {   
+        return color ? color.bg : '';
+    }   
 }
 
 export const nuevaOrden = {

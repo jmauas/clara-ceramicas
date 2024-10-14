@@ -27,7 +27,7 @@ export default function RegisterPage({ setShow, setForm}) {
         domicilio: '',
         cp: '',
         localidad: '',
-        provincia: '',
+        provincia: 'C.A.B.A.',
         codigo: '',
     });
 
@@ -38,7 +38,7 @@ export default function RegisterPage({ setShow, setForm}) {
         try {
             e.preventDefault();
             if (validado===0) {
-                if (!validarUser(usuario, setError, false)) return
+                if (!validarUser(usuario, setError, false, passwordError)) return
                 const res = await fetch('/api/auth/signup', {
                     body:  JSON.stringify(usuario),
                     headers: {

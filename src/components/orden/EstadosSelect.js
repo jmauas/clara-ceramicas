@@ -22,13 +22,13 @@ const MenuProps = {
   },
 };
 
-function getStyles(estado, theme) {
+function getStyles(estado, theme, perfil) {
     return {
       fontWeight:
             estadosOrden.indexOf(estado) === -1
             ? theme.typography.fontWeightRegular
             : theme.typography.fontWeightLarge,
-        backgroundColor: colorEstado(estado.value),
+        backgroundColor: colorEstado(estado.value, perfil),
         border: '1px solid #dedbd2',
         borderRadius: '10px',
         margin: '4px 4px',
@@ -52,7 +52,8 @@ export default function EstadosSelect({ setFiltros, perfil }) {
         let opts = []
         if (perfil === 1) {
             opts = [...estadosOrden.filter(es => es.value <= 20)];
-            opts = [...opts.map(es => ({...es, label: es.cliente}))];
+            opts = [...opts.map(es => ({...es, label: es.cliente, bg: es.bgCliente, emoji: es.emojiCliente}))];
+            opts = opts.filter(es => es.value !== 1);
             opts = [{value: 1000, label: `Todos`, bg: '', emoji: '💯'}, ...opts];
         } else {
             opts = [{value: 1000, label: `Todos`, bg: '', emoji: '💯'}, ...estadosOrden]
@@ -88,7 +89,7 @@ export default function EstadosSelect({ setFiltros, perfil }) {
                         <MenuItem
                             key={estado.value}
                             value={estado}
-                            style={getStyles(estado, theme)}
+                            style={getStyles(estado, theme, perfil)}
                         >
                             <div className="ml-3 grid grid-cols-6 gap-4 text-xs">
                                 <div className="col-span-1"><div className={value.some(es => es.value === estado.value || value.some(es => es.value === 1000)) ? null : 'invisible'}>✔️</div></div>

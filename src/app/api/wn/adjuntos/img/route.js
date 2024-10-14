@@ -23,7 +23,7 @@ export async function POST(req) {
 export async function PUT(req) {  
     try {
         const data = await req.json();
-        const { orden, adjunto, userEnvia } = data;
+        const { orden, adjunto, userEnvia, externa, url } = data;
         if (adjunto) {
             let numero = '';
             if (Number(userEnvia.perfil) === 1) {
@@ -31,7 +31,7 @@ export async function PUT(req) {
             } else {
                 numero = orden.odontologo.celular; 
             }
-            await postAdjunto(numero, adjunto, 'imgs');
+            await postAdjunto(numero, adjunto, 'imgs', externa, url);
             orden.historia.push({fecha: new Date().toISOString(), estado: orden.estado, mensaje: `Se envió Imagen ${adjunto} por Whatsapp`, usuario: userEnvia.nombre+' '+userEnvia.apellido});
             //orden.imgs.push(adjunto);
             const updatedOrden = await Orden.findByIdAndUpdate(orden._id, orden, { new: true });

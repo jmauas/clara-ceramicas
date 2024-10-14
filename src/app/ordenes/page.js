@@ -22,6 +22,7 @@ import Dialog from '@mui/material/Dialog';
 import Switch from "react-switch";
 import SelectOdontologos from '@/src/components/users/OdontologosSelect';
 import UltimosMsg from '@/src/components/orden/UltimosMsg.js';
+import { normalizarOrden } from "@/src/app/ordenes/utilidades.js";
 
 const materiales = nuevaOrden.material;
 const impresiones = nuevaOrden.impresion;
@@ -117,7 +118,7 @@ export default function Page({ }) {
             const data = await res.json();
             const ords = data.ordenes;
             if (ords && ords.length > 0) {
-                setOrdenes(ordenes.map(orden => orden._id === id ? normalizarOrden(ords[0]) : orden));
+                setOrdenes(ordenes.map(orden => orden._id === id ? normalizarOrden({orden: ords[0], setEnDetalle: setEnDetalle}) : orden));
             }
         } catch (error) {
             console.log(error);
@@ -127,6 +128,7 @@ export default function Page({ }) {
     const cambiarEstado = async (orden) => {
         const nuevoEstado = document.getElementById(`cambioEstado${orden.orderNumber}`);
         orden.estado = Number(nuevoEstado.value);
+        if (orden.estado != 10) orden.nuevoMsgOdontologo = false;
         const texto = nuevoEstado.options[nuevoEstado.selectedIndex].text;
         orden.historia.push({fecha: new Date().toISOString(), estado: orden.estado, mensaje: `Estado Modificado a ${texto}`, usuario: data.user.nombre+' '+data.user.apellido});
         await updateOrder(orden);
@@ -151,7 +153,7 @@ export default function Page({ }) {
             })
             const datos = await res.json();
             if (datos.success) {
-                setOrdenes(ordenes.map(ord => ord._id === orden._id ? normalizarOrden(datos.savedOrden) : ord));
+                setOrdenes(ordenes.map(ord => ord._id === orden._id ? normalizarOrden({orden: datos.savedOrden, setEnDetalle: setEnDetalle}) : ord));
             }
         } catch (error) {
             console.log(error);
@@ -178,7 +180,7 @@ export default function Page({ }) {
             const data = await res.json();
             setEnDetalle([]);
             const ords = data.ordenes.map(orden => {
-                return normalizarOrden(orden);
+                return normalizarOrden({orden: orden, setEnDetalle: setEnDetalle});
             });
             setOrdenes(ords);
             return ords;
@@ -186,26 +188,6 @@ export default function Page({ }) {
             console.log(error);
         } finally {
             setLoad(false);
-        }
-    }
-
-    const normalizarOrden = (orden) => {
-        const soli = new Date(orden.fechaSolicitada);
-        soli.setHours(soli.getHours() + 3);
-        let esti = '';
-        let esti2 = '';
-        if (orden.fechaEstimada) {
-            esti = new Date(orden.fechaEstimada);
-            esti.setHours(esti.getHours() + 3);
-            esti2 = formatoFecha(orden.fechaEstimada, false, false, false, true)
-            esti = esti.toISOString().substring(0,10)
-        }
-        setEnDetalle(prev => prev.concat([{_id: orden._id, enDetalle: false}]));
-        return {
-            ...orden,
-            fechaSolicitada: soli,
-            fechaEstimada: esti,
-            fechaEstimada2: esti2
         }
     }
 
@@ -272,7 +254,7 @@ export default function Page({ }) {
                      console.log(error);
                 }
             };
-            handleServiceWorker();
+            //handleServiceWorker();
         }  
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
@@ -471,9 +453,9 @@ export default function Page({ }) {
                             {data && data.user && 
                                 Number(data.user.perfil) === 1
                                 ?    <div className={`col-span-12 sm:col-span-6 flex flex-col gap-2`}>
-                                        <span className={`flex items-center gap-2 float-right p-2 rounded-xl font-bold text-sm`} style={{backgroundColor: colorEstado(orden.estado)}}>
+                                        <span className={`flex items-center gap-2 float-right p-2 rounded-xl font-bold text-sm`} style={{backgroundColor: colorEstado(orden.estado, data.user.perfil)}}>
                                             {estadosOrden.find(es => es.value === orden.estado) && 
-                                                <><div className="text-2xl">{estadosOrden.find(es => es.value === orden.estado).emoji}</div>
+                                                <><div className="text-2xl">{estadosOrden.find(es => es.value === orden.estado).emojiCliente}</div>
                                                 <div className="col-span-9 text-sm">{estadosOrden.find(es => es.value === orden.estado).cliente || 'Indeterminado'}</div></>}
                                         </span>
                                         <button 
@@ -485,7 +467,7 @@ export default function Page({ }) {
                                         </button>
                                     </div>
                                 :   <div className={`col-span-12 sm:col-span-6 flex flex-col gap-5`}>
-                                        <span className={`flex items-center gap-4 float-right p-1 rounded-xl font-bold `} style={{backgroundColor: colorEstado(orden.estado)}}>
+                                        <span className={`flex items-center gap-4 float-right p-1 rounded-xl font-bold `} style={{backgroundColor: colorEstado(orden.estado, data.user.perfil)}}>
                                             {estadosOrden.find(es => es.value === orden.estado) && 
                                                 <><div className="text-2xl">{estadosOrden.find(es => es.value === orden.estado).emoji}</div>
                                                 <div className="col-span-9 text-sm">{estadosOrden.find(es => es.value === orden.estado).label}</div></>}
@@ -547,7 +529,7 @@ export default function Page({ }) {
                                 {data && Number(data.user.perfil) >= 3 &&
                                     <SelectOdontologos  odontologo={orden.asignada} tipo={2} orden={orden} user={data.user} updateOrder={updateOrder} />
                                 }                
-                                {orden.asignada && 
+                                {orden.asignada && data && Number(data.user.perfil) >= 2 &&
                                     <div className="flex items-center justify-center gap-4">
                                         <h1 className="text-sm">Asignada A:</h1>
                                         {orden.asignada.picture && orden.asignada.picture != '' && 

@@ -7,11 +7,12 @@ export const guardarScan = async (file) => {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
     const root = process.cwd();
-    const nombre = file.name.substring(0, file.name.lastIndexOf('.'));
+    let nombre = file.name.substring(0, file.name.lastIndexOf('.'));
     let ext = file.name.substring(file.name.lastIndexOf('.')+1);
-    const idNombre = nombre+'-'+uniqid()+'.'+ext
+    nombre = normalizar(nombre);
+    const idNombre = nombre+'$'+uniqid()+'.'+ext
     const filePath = path.join(root, 'locales', 'scans', idNombre);    
-    await fs.writeFile(filePath, buffer)
+    fs.writeFile(filePath, buffer)
     return idNombre;
 }
 
@@ -19,9 +20,10 @@ export const guardarImg = async (file) => {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
     const root = process.cwd();
-    const nombre = file.name.substring(0, file.name.lastIndexOf('.'));
+    let nombre = file.name.substring(0, file.name.lastIndexOf('.'));
+    nombre = normalizar(nombre);
     let ext = file.name.substring(file.name.lastIndexOf('.')+1);
-    const idNombre = nombre+'-'+uniqid()+'.'+ext
+    const idNombre = nombre+'$'+uniqid()+'.'+ext
     const filePath = path.join(root, 'locales', 'imgs', idNombre);    
     await fs.writeFile(filePath, buffer);
     return idNombre;
@@ -46,8 +48,9 @@ export const descomprimirYGuardar = async (file) => {
 const extraerArchivo = (archivo, root) => {
     let nombre = archivo.entryName.substring(0, archivo.entryName.lastIndexOf('.'));
     nombre = nombre.substring(nombre.lastIndexOf('/')+1);
+    nombre = normalizar(nombre);
     const ext = archivo.entryName.substring(archivo.entryName.lastIndexOf('.')+1);
-    const idNombre = nombre+'-'+uniqid()+'.'+ext
+    const idNombre = nombre+'$'+uniqid()+'.'+ext
     const buffer = archivo.getData();
     let tipo;
     let dir;
@@ -61,4 +64,12 @@ const extraerArchivo = (archivo, root) => {
     const filePath = path.join(root, 'locales', dir, idNombre);    
     fs.writeFile(filePath, buffer);
     return {tipo: tipo, nombre: idNombre};    
+}
+
+const normalizar = (str) => {
+    return str.normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/ñ/g, 'n')
+          .replace(/Ñ/g, 'N')
+          .replace(/ /g, '_');
 }

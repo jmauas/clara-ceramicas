@@ -1,4 +1,4 @@
-export const validarUser = (usuario, setError, update) => {
+export const validarUser = (usuario, setError, update, passwordError) => {
     if (usuario.email === '') {
         setError('Completá el EMail.');
         return false;
@@ -22,6 +22,10 @@ export const validarUser = (usuario, setError, update) => {
     }
     if (usuario.password === '') {
         setError('Completá la Contraseña.');
+        return false;
+    }
+    if (passwordError) {
+        setError('Las Contraseñas deben Coincidir.');
         return false;
     }
     if (usuario.celular.length < 10) {

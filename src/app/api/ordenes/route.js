@@ -80,7 +80,26 @@ export async function GET(req) {
       if (estado && estado !== '') {
         let estados = estado.split(',');
         if (!estados.includes('1000')) {
-          query.estado = { $in: estados };
+          if (user.perfil == 1) {
+            const es = [];
+            if (estados.includes('0') || estados.includes('1')) {
+              es.push(0);
+              es.push(1);
+            }
+            if (estados.includes('10')) es.push(10);
+            if (estados.includes('20')) {
+              es.push(20);
+              es.push(30);
+              es.push(40);
+              es.push(50);
+              es.push(90);
+              es.push(91);
+              es.push(95);
+            }
+            query.estado = { $in: es };
+          } else {
+            query.estado = { $in: estados };
+          }
         }
       }
       if (disenador && disenador !== '') {
@@ -138,7 +157,7 @@ export async function GET(req) {
             ...orden._doc,
             slices: orden.imgs.map((img) => {
               return {
-                src: '/api/files/imgs/'+img
+                src: img.externa ? img.url : '/api/files/imgs/'+img
               }}),
           };
       })

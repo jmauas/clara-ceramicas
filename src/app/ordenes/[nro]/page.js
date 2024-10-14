@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react";
 import { formatoFecha } from "@/src/services/utils/auxiliaresCliente";
 import DetalleOrden from '@/src/components/orden/DetalleOrden.js';
 import { useLogueoStore } from "@/src/store/logueo.store.js";
+import { normalizarOrden } from "@/src/app/ordenes/utilidades.js";
 
 export default function Page(params) {
     const { data } = useSession();
@@ -68,6 +69,24 @@ export default function Page(params) {
         } 
     }
 
+    const actualizarDetalle = async (id) => { 
+        try {
+            const res = await fetch(`/api/ordenes?id=${id}`, {
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                method: 'GET'
+            })
+            const data = await res.json();
+            const ords = data.ordenes;
+            if (ords && ords.length > 0) {
+                setOrdenes(ordenes.map(orden => orden._id === id ? normalizarOrden({orden: ords[0], setEnDetalle: setEnDetalle}) : orden));
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     useEffect(() => {
         if (orderNumber && orderNumber !== '') {
             fetchData(orderNumber);
@@ -96,7 +115,7 @@ export default function Page(params) {
                         updateOrder={updateOrder}
                         setOrdenes={setOrdenes}
                         enDetalle={enDetalle}
-                        actualizarDetalle={updateOrder}
+                        actualizarDetalle={actualizarDetalle}
                     />
                 </div>
         }</>    

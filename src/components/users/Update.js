@@ -4,6 +4,7 @@ import { signIn, useSession } from 'next-auth/react'
 import { FaUserCheck, FaBackspace } from "react-icons/fa";
 import Usuario from '@/src/components/users/Usuario.js';
 import { validarUser } from '@/src/services/utils/utils.users.js';
+import { FaRegEye, FaRegEyeSlash } from "react-icons/fa6";
 
 export default function UpdatePage({ setShow, setForm}) {
     const { data } = useSession();
@@ -12,6 +13,8 @@ export default function UpdatePage({ setShow, setForm}) {
     const [ adm, setAdm] = useState(false);
     const [ load, setLoad ] = useState(false);
     const [ usuario, setUsuario] = useState(null);
+    const [ showPw, setShowPw] = useState(false);
+    const [ passwordError, setPasswordError] = useState(false);
 
     const submit = async (e) => {
         setLoad(true)
@@ -24,7 +27,8 @@ export default function UpdatePage({ setShow, setForm}) {
                 setLoad(false)
                 return
             }
-            if (!validarUser(usuario, setError, true)) return
+            if (!validarUser(usuario, setError, true, passwordError)) return
+            console.log('usuario:', usuario)
             const res = await fetch('/api/auth/update', {
                 body:  JSON.stringify(usuario),
                 headers: {
@@ -58,12 +62,22 @@ export default function UpdatePage({ setShow, setForm}) {
         setLoad(false)
     }
 
-
     const handleOnChange = (e) => {
         setUsuario({
             ...usuario,               
             [e.target.name]: e.target.value
-        })
+        });
+        if (e.target.name === 'password') {
+            handleOnConfirmChange(e)
+        }
+    }
+
+    const handleOnConfirmChange = (e) => {
+        if (e.target.value !== usuario.password) {
+            setPasswordError(true)
+        } else {
+            setPasswordError(false)
+        }
     }
 
     useEffect(() => {
@@ -85,8 +99,35 @@ export default function UpdatePage({ setShow, setForm}) {
             <form onSubmit={submit}>
                 <div className="grid grid-cols-6 items-center">
                     
-                    <Usuario usuario={usuario} handleOnChange={handleOnChange} validado={0} email={false} password={false} />  
-                    
+                    <Usuario 
+                        usuario={usuario} 
+                        handleOnChange={handleOnChange} 
+                        validado={0} 
+                        email={false} 
+                        password={true} 
+                        showPw={showPw} 
+                        setShowPw={setShowPw}
+                        passwordError={passwordError}
+                    />  
+                    <span className={`col-span-6 text-center bg-slate-200 rounded-md p-2 text-sm`}>❗Completá Contraseñas solo si queres Modificarla❗</span>
+                    <span className={`col-span-6 md:col-span-2`}>Confirmar Contraseña: </span>
+                    <div className="relative col-span-6 md:col-span-4 ">
+                        <input 
+                            type={showPw ? "text" : "password"} 
+                            autoComplete="password"
+                            placeholder="Repetir Password"
+                            name="password"                        
+                            onChange={handleOnConfirmChange}
+                            className={`bg-gray-100 ${passwordError && 'border-rose-600'} border-2 w-full p-4 rounded-lg my-2`}
+                        />
+                        <button 
+                            type="button" 
+                            onClick={() => setShowPw(!showPw)}
+                            className={`absolute inset-y-5 right-2 text-gray-400`}
+                        >
+                            {showPw ? <FaRegEyeSlash size="2rem"/> : <FaRegEye size="2rem" />}                        
+                        </button>
+                    </div>
                     <span className="col-span-6">
                         {error && <p className="bg-red-500 text-lg text-white font-bold p-2 m-3 rounded-xl">{error}</p>}
                         {ok && <p className="bg-green-500 text-lg text-white font-bold p-2 m-3 rounded-xl">{ok}</p>}
