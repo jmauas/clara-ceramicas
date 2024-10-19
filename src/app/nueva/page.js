@@ -312,7 +312,7 @@ const NuevaOrdenDeTrabajo = () => {
                     </label>                
                 </form>
 
-                <UploadClouddinary setScans={setScans} setImgs={setImgs} texto={'Click para Subir Archivos de Diseño'} tipo={1}/>
+                <UploadClouddinary setScans={setScans} setImgs={setImgs} texto={'NO USAR Click para Subir Archivos de Diseño'} tipo={1}/>
                 
                 <label htmlFor={`sinAdjunto`} className="m-2 font-bold text-xl flex items-center">
                     <Switch 

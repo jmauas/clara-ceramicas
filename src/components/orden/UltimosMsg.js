@@ -1,5 +1,5 @@
 import { formatoFecha } from "@/src/services/utils/auxiliaresCliente";
-
+import { FaPaperclip } from "react-icons/fa";
 
 export default function UltimosMsg({ orden }) {
     return (
@@ -19,6 +19,18 @@ export default function UltimosMsg({ orden }) {
                             <span className="">{formatoFecha(hist.fecha, false, false, false, false)}</span>
                             <span className="overflow-auto whitespace-normal text-xs font-bold">{hist.mensaje}</span>
                             <span className="">{hist.usuario}</span>
+                            <span className="flex items-center">
+                                {hist.adjunto && hist.adjunto.nombre && hist.adjunto.nombre !== '' &&
+                                    <a
+                                        href={`${hist.adjunto.externa ? hist.adjunto.url : hist.adjunto.tipo === 'img' ? '/api/files/imgs/'+hist.adjunto.nombre : '/api/files/scans/'+hist.adjunto.nombre}`}
+                                        className="p-1 rounded-lg cursor-pointer bg-red-500 text-white hover:bg-red-800"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        <FaPaperclip size="1em" />
+                                    </a>
+                                }
+                            </span>
                         </div>
                     </div>
                 ))}

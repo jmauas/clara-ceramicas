@@ -59,20 +59,20 @@ export const postAdjunto = async (cel, adj, ruta, externa, urlAdj) => {
         let media = '';
         let res = '';
         if (!externa === true) {
-            let urlWa = url;
-            urlWa = urlWa.substring(0, urlWa.lastIndexOf('/'))+'/upload';
-            const formData = new FormData();
-            const filePath = path.join(root, 'locales', ruta, adj);
-            formData.append('myFile', fs.createReadStream(filePath));
-            const data = await fetch(urlWa, {
-                method: 'POST',
-                body: formData,
-                headers: {               
-                    ...formData.getHeaders()
-                },
-            });
-            res = await data.json();
-            media = [res.file]
+            // let urlWa = url;
+            // urlWa = urlWa.substring(0, urlWa.lastIndexOf('/'))+'/upload';
+            // const formData = new FormData();
+            // const filePath = path.join(root, 'locales', ruta, adj);
+            // formData.append('myFile', fs.createReadStream(filePath));
+            // const data = await fetch(urlWa, {
+            //     method: 'POST',
+            //     body: formData,
+            //     headers: {               
+            //         ...formData.getHeaders()
+            //     },
+            // });
+            //res = await data.json();
+            media = [adj]
         } else {
             media = [urlAdj];
         }        

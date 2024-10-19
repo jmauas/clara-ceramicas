@@ -4,7 +4,7 @@ import Toast from '@/src/components/Toast.js';
 import { useSession } from "next-auth/react";
 import { formatoFecha } from "@/src/services/utils/auxiliaresCliente.js";
 import Slide from "@/src/components/orden/Slide";
-import { FaCloudDownloadAlt, FaCalendarAlt, FaCheckCircle, FaWindowClose } from "react-icons/fa";
+import { FaCloudDownloadAlt, FaCalendarAlt, FaCheckCircle, FaWindowClose, FaPaperclip } from "react-icons/fa";
 import { GrUpdate } from "react-icons/gr";
 import { nuevaOrden } from "@/src/services/utils/utils.ordenes.js";
 import { colorEstado, estadosOrden } from "@/src/services/utils/utils.ordenes.js";
@@ -86,8 +86,8 @@ export default function ModalOrden({orden, updateOrder, handleClose, enDetalle, 
         orden.historia.push({fecha: new Date().toISOString(), estado: orden.estado, mensaje: `Fecha Estimada Modificada a ${formatoFecha(orden.fechaEstimada, false, false, false, true)}`, usuario: data.user.nombre+' '+data.user.apellido});
         await updateOrder(orden);
         const msg = {
-            titulo: 'Nuevo Mensaje del Laboratorio en Orden de Trabajo',
-            texto: `Te Notificamos la *fecha* estimada de *Entrega* de la Orden Nro. ${orden.orderNumber} del Paciente *${orden.paciente}*.
+            titulo: `⚠️ *Mensaje del Laboratorio en Orden de Trabajo*`,
+            wa: `Te Notificamos la *fecha* estimada de *Entrega* de la Orden Nro. ${orden.orderNumber} del Paciente *${orden.paciente}*.
 Para el *${formatoFecha(orden.fechaEstimada, false, false, false, true)}*.`,
             entrega: true,
             usuario: data.user.nombre+' '+data.user.apellido,
@@ -531,13 +531,25 @@ Para el *${formatoFecha(orden.fechaEstimada, false, false, false, true)}*.`,
             <div className="font-bold flex flex-col flex-wrap gap-2 mx-0 p-2 md:mx-5 md:p-5 border border-black rounded-xl shadow">
                 <h2 className="md:text">Mensajes del Trabajo: </h2>
                 {orden.mensajes.map((hist, i) => (
-                    <div key={i} className={`p-2 mx-1 md:mx-4 rounded-md grid grid-cols-12 gap-5 text-xs 
+                    <div key={i} className={`p-2 mx-1 md:mx-4 rounded-md grid grid-cols-12 gap-5 text-xs items-center
                      ${hist.perfil === 1 ? 'bg-green-200' : 'bg-sky-200'}`}
                     >
-                        <span className="">{hist.perfil == 1 ? '👩‍⚕️' : '⚠️'}</span>
+                        <span className="col-span-1">{hist.perfil == 1 ? '👩‍⚕️' : '⚠️'}</span>
                         <span className="col-span-6 md:col-span-2">{formatoFecha(hist.fecha, true, false, false, true)}</span>
-                        <span className="col-span-6 md:col-span-1">{hist.usuario}</span>
-                        <span className="col-span-12 md:col-span-8">{hist.mensaje}</span>
+                        <span className="col-span-5 md:col-span-1">{hist.usuario}</span>
+                        <span className="col-span-10 md:col-span-7 flex items-center gap-2">{hist.mensaje}
+                            {hist.adjunto && hist.adjunto.nombre && hist.adjunto.nombre !== '' &&
+                                <a
+                                    href={`${hist.adjunto.externa ? hist.adjunto.url : hist.adjunto.tipo === 'img' ? '/api/files/imgs/'+hist.adjunto.nombre : '/api/files/scans/'+hist.adjunto.nombre}`}
+                                    className="p-1 ring-2 ring-slate-400 rounded-lg flex items-center gap-2 cursor-pointer bg-red-500 text-white hover:bg-red-800 font-semibold"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    <FaPaperclip size="1.5rem" />
+                                    {hist.adjunto.nombre.substring(0, hist.adjunto.nombre.indexOf('$') > 0 ? hist.adjunto.nombre.indexOf('$') : hist.adjunto.nombre.length)}
+                                </a>
+                            }
+                        </span>
                     </div>
                 ))}
                 <NuevoMensaje 

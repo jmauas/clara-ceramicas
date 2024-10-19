@@ -19,3 +19,15 @@ export const normalizarOrden = ({orden, setEnDetalle}) => {
         fechaEstimada2: esti2
     }
 }
+
+export const actualizarOrden = async (orden) => {
+    const res = await fetch('/api/ordenes', {
+        body:  JSON.stringify(orden),
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        method: 'PUT'
+    })
+    const datos = await res.json();
+    return datos
+}

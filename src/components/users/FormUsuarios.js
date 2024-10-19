@@ -30,7 +30,7 @@ const FormUsuarios = ({ show, setShow, form, setForm }) => {
             <div className="modal-bg-container fixed inset-0 bg-gray-700 bg-opacity-75">
             </div>
             <div className="modal-space-container hidden sm:inline-block sm:align-middle sm:h-screen">
-              &nbsp
+              
             </div>
               <div id="modal-container" className="modal-container inline-block bg-white rounded-2xl  
                   text-left overflow-hidden shadow-xl sm:my-8 sm:align-middle sm:max-w-xl transform">

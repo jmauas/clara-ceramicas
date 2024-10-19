@@ -22,7 +22,7 @@ import Dialog from '@mui/material/Dialog';
 import Switch from "react-switch";
 import SelectOdontologos from '@/src/components/users/OdontologosSelect';
 import UltimosMsg from '@/src/components/orden/UltimosMsg.js';
-import { normalizarOrden } from "@/src/app/ordenes/utilidades.js";
+import { normalizarOrden, actualizarOrden } from "@/src/app/ordenes/utilidades.js";
 
 const materiales = nuevaOrden.material;
 const impresiones = nuevaOrden.impresion;
@@ -144,14 +144,7 @@ export default function Page({ }) {
     
     const updateOrder = async (orden) => {
         try {
-            const res = await fetch('/api/ordenes', {
-                body:  JSON.stringify(orden),
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                method: 'PUT'
-            })
-            const datos = await res.json();
+            const datos = await actualizarOrden(orden);
             if (datos.success) {
                 setOrdenes(ordenes.map(ord => ord._id === orden._id ? normalizarOrden({orden: datos.savedOrden, setEnDetalle: setEnDetalle}) : ord));
             }
@@ -294,7 +287,7 @@ export default function Page({ }) {
                     <input type="text" id="fOdontologo" name="odontologo" value={filtros.odontologo} className="p-4 h-8 border rounded-lg overflow-hidden" onChange={handleFiltroChange} />
                 </div>
                 <div className="grid grid-rows-2 h-20">
-                    <label htmlFor="fPaciednte" className="flex items-center text-sm h-8">
+                    <label htmlFor="fPaciente" className="flex items-center text-sm h-8">
                         <span>Paciente: </span>
                     </label>
                     <input type="text" id="fPaciente" name="paciente" value={filtros.paciente} className="p-4 h-8 border rounded-lg overflow-hidden" onChange={handleFiltroChange} />

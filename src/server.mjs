@@ -12,7 +12,7 @@ const dev = false;
 const app = next({ dev })
 const handle = app.getRequestHandler()
 
-agendarLimpieza();
+//agendarLimpieza();
 
 const httpsOptions = {
   key: readFileSync(process.env.PRIVATE_KEY, 'utf8'),

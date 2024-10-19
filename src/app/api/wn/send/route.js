@@ -17,27 +17,15 @@ export async function POST(request) {
     let msgWa;
     if (Number(userEnvia.perfil) === 1) {
         users = await User.find({ perfil: { $gte: 2 } });
-        msgWa = `👩‍⚕️ *${msg.titulo}*
-
-${msg.texto}`;
     } else {
         users.push(orden.odontologo);
-        msgWa = `⚠️ *${msg.titulo}*`;
-        if (msg.entrega) {
-          msgWa += `
-
-${msg.texto}`;
-        } else if (msg.conAdj) {
-          msgWa += `
-
-${msg.texto}
-*Para Responder, hace click en este Link:*`;
-        } else {
-          msgWa += `
-
-Para ver el Mensaje y Responderlo, hace click en este Link:`;
-        }
     }
+    msgWa = `${msg.titulo}
+`;
+    if (msg.conAdj) {msgWa += `${msg.texto
+
+}`}
+    msgWa += msg.wa;
     await validarYEnviarWhatsapp(orden.odontologo.celular, msgWa)
     await validarYEnviarWhatsapp(orden.odontologo.celular, `${url}/ordenes/${orden.orderNumber}`)
     //const userIds = users.map(user => (new ObjectId(user._id).valueOf()));

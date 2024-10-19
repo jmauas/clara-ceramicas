@@ -51,12 +51,11 @@ export default function LoginPage({ setShow, setForm }) {
         setOk('')
         try {
             e.preventDefault();
-            // const ip = await pedirIP();
-            // if (!ip.ok) {
-            //     ip.ip = ''
-            //     ip.agent = ''
-            // }
-            const ip = {ip: '', agent: ''}
+            const ip = await pedirIP();
+            if (!ip.ok) {
+                ip.ip = ''
+                ip.agent = ''
+            }
             const resSession = await signIn('credentials', {
                 email: e.target.email.value,
                 password: e.target.password.value,
